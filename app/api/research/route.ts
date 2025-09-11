@@ -17,28 +17,45 @@ export async function POST(req: Request) {
 
     const ideas = await findIdeas({ query, region, budget, audience });
 
-    // Save each idea if not already in DB (by title)
     for (const idea of ideas) {
       try {
-        await prisma.idea.upsert({
+        // Look up by title (NOT unique in your schema)
+        const existing = await prisma.idea.findFirst({
           where: { title: idea.title },
-          update: {
-            summary: idea.summary,
-            tags: idea.tags,
-            score: idea.score,
-            sources: idea.sources ?? []
-          },
-          create: {
-            title: idea.title,
-            summary: idea.summary,
-            tags: idea.tags,
-            score: idea.score,
-            sources: idea.sources ?? [],
-            query, region, budget, audience
-          }
+          select: { id: true },
         });
+
+        if (existing) {
+          await prisma.idea.update({
+            where: { id: existing.id },
+            data: {
+              summary: idea.summary,
+              tags: idea.tags,
+              score: idea.score,
+              sources: idea.sources ?? [],
+              query,
+              region,
+              budget,
+              audience,
+            },
+          });
+        } else {
+          await prisma.idea.create({
+            data: {
+              title: idea.title,
+              summary: idea.summary,
+              tags: idea.tags,
+              score: idea.score,
+              sources: idea.sources ?? [],
+              query,
+              region,
+              budget,
+              audience,
+            },
+          });
+        }
       } catch {
-        // ignore duplicates/validation errors
+        // ignore a single record failure and continue
       }
     }
 
