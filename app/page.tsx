@@ -1,54 +1,50 @@
-// app/page.tsx
 import prisma from "../src/lib/db";
+import SearchForm from "./components/SearchForm";
 
 export default async function Page() {
-  // If Prisma schema has an Idea model, list a few ideas.
-  // Adjust to your actual model names if different.
-  try {
-    const ideas = await prisma.idea.findMany({
-      take: 10,
-      orderBy: { createdAt: "desc" },
-    });
+  // Show recent saved ideas from DB (so page isn't empty on first open)
+  const recent = await prisma.idea.findMany({
+    take: 10,
+    orderBy: { createdAt: "desc" },
+    select: { id: true, title: true, summary: true, tags: true, score: true }
+  });
 
-    return (
-      <main className="p-8 max-w-3xl mx-auto">
-        <h1 className="text-2xl font-bold mb-4">Startup Ideas Index</h1>
+  return (
+    <main className="p-8 max-w-4xl mx-auto">
+      <h1 className="text-2xl font-bold mb-2">Startup Ideas Index — Research</h1>
+      <p className="text-sm opacity-70 mb-6">
+        Generate research-backed startup ideas automatically and persist them.
+      </p>
 
-        {ideas.length === 0 ? (
-          <p className="text-sm opacity-70">
-            No ideas yet. Your app is live and connected to the database. Seed it
-            (or add a form) to create ideas.
-          </p>
-        ) : (
+      <SearchForm />
+
+      {recent.length > 0 ? (
+        <>
+          <h2 className="text-lg font-semibold mt-10 mb-2">Recent ideas</h2>
           <ul className="space-y-3">
-            {ideas.map((i) => (
-              <li key={i.id} className="rounded border p-4">
-                <h2 className="font-semibold">{i.title}</h2>
+            {recent.map((i) => (
+              <li key={i.id} className="border rounded p-4">
+                <div className="flex items-start justify-between gap-4">
+                  <h3 className="font-semibold">{i.title}</h3>
+                  <span className="text-xs opacity-60">score: {i.score}</span>
+                </div>
                 {i.summary ? (
                   <p className="text-sm opacity-80 mt-1">{i.summary}</p>
                 ) : null}
-                <p className="text-xs opacity-60 mt-2">
-                  Created {new Date(i.createdAt).toLocaleString()}
-                </p>
+                {i.tags?.length ? (
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {i.tags.map((t) => (
+                      <span key={t} className="text-xs rounded bg-black/5 px-2 py-1">
+                        {t}
+                      </span>
+                    ))}
+                  </div>
+                ) : null}
               </li>
             ))}
           </ul>
-        )}
-      </main>
-    );
-  } catch (err) {
-    // If the table/model isn't there yet, show an informative message.
-    return (
-      <main className="p-8 max-w-2xl mx-auto">
-        <h1 className="text-2xl font-bold mb-4">Startup Ideas Index</h1>
-        <p className="text-sm opacity-80">
-          App is live, but the Prisma query failed. Make sure your Prisma schema
-          is deployed and the model name matches.
-        </p>
-        <pre className="mt-4 p-4 rounded bg-black/10 text-xs overflow-auto">
-{String(err)}
-        </pre>
-      </main>
-    );
-  }
+        </>
+      ) : null}
+    </main>
+  );
 }
