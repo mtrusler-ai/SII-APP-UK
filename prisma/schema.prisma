@@ -1,20 +1,41 @@
+// Prisma schema for Postgres (Neon)
+
+
 generator client {
-  provider = "prisma-client-js"
+provider = "prisma-client-js"
 }
+
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+provider = "postgresql"
+url = env("DATABASE_URL")
 }
+
 
 model Idea {
-  id        String   @id @default(cuid())
-  title     String
-  summary   String?
-  createdAt DateTime @default(now())
+id String @id @default(cuid())
+title String @unique
+summary String?
+tags String[] @db.Text[]
+url String?
+source String? // 'hn' | 'github' | 'reddit' | 'manual'
+hnPoints Int?
+ghStars Int?
+rdScore Int?
+createdAt DateTime @default(now())
+updatedAt DateTime @updatedAt
 }
 
+
 model User {
-  id    String @id @default(cuid())
-  email String @unique
+id String @id @default(cuid())
+clerkId String @unique
+email String @unique
+isAdmin Boolean @default(false)
+stripeId String?
+plan String? // 'pro' | null
+planStatus String? // 'active' | 'canceled' | null
+proUntil DateTime?
+createdAt DateTime @default(now())
+updatedAt DateTime @updatedAt
 }
