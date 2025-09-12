@@ -1,50 +1,17 @@
-import prisma from "../src/lib/db";
-import SearchForm from "./components/SearchForm";
+import Link from 'next/link'
 
-export default async function Page() {
-  // Show recent saved ideas from DB (so page isn't empty on first open)
-  const recent = await prisma.idea.findMany({
-    take: 10,
-    orderBy: { createdAt: "desc" },
-    select: { id: true, title: true, summary: true, tags: true, score: true }
-  });
 
-  return (
-    <main className="p-8 max-w-4xl mx-auto">
-      <h1 className="text-2xl font-bold mb-2">Startup Ideas Index — Research</h1>
-      <p className="text-sm opacity-70 mb-6">
-        Generate research-backed startup ideas automatically and persist them.
-      </p>
-
-      <SearchForm />
-
-      {recent.length > 0 ? (
-        <>
-          <h2 className="text-lg font-semibold mt-10 mb-2">Recent ideas</h2>
-          <ul className="space-y-3">
-            {recent.map((i) => (
-              <li key={i.id} className="border rounded p-4">
-                <div className="flex items-start justify-between gap-4">
-                  <h3 className="font-semibold">{i.title}</h3>
-                  <span className="text-xs opacity-60">score: {i.score}</span>
-                </div>
-                {i.summary ? (
-                  <p className="text-sm opacity-80 mt-1">{i.summary}</p>
-                ) : null}
-                {i.tags?.length ? (
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    {i.tags.map((t) => (
-                      <span key={t} className="text-xs rounded bg-black/5 px-2 py-1">
-                        {t}
-                      </span>
-                    ))}
-                  </div>
-                ) : null}
-              </li>
-            ))}
-          </ul>
-        </>
-      ) : null}
-    </main>
-  );
+export default function Page() {
+return (
+<main className="card space-y-3">
+<h1 className="text-2xl font-semibold">SII‑APP‑UK</h1>
+<p className="opacity-80">Production‑grade research app is live.</p>
+<div className="flex gap-3 mt-2">
+<Link className="px-3 py-2 rounded bg-white/10" href="/ideas">Browse Ideas</Link>
+<Link className="px-3 py-2 rounded bg-white/10" href="/admin">Admin</Link>
+<Link className="px-3 py-2 rounded bg-white/10" href="/sign-in">Sign In</Link>
+</div>
+<a className="inline-block mt-2 px-3 py-2 rounded bg-white/10" href="/api/health">Check /api/health</a>
+</main>
+)
 }
