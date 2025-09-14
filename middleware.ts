@@ -8,8 +8,12 @@ export default clerkMiddleware({
     '/ideas',
     '/api/health',
     '/api/ideas(.*)',
+    '/api/ideas/stats',
+    '/api/research/run',
+    '/api/stripe/(.*)',
     '/api/research',
     '/api/report/pdf',
+    '/admin',
     '/checkout/(.*)',
   ],
 })
