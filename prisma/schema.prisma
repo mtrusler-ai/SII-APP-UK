@@ -16,7 +16,7 @@ model Idea {
 id String @id @default(cuid())
 title String @unique
 summary String?
-tags String[] @db.Text[]
+tags String[]
 url String?
 source String? // 'hn' | 'github' | 'reddit' | 'manual'
 hnPoints Int?
@@ -39,3 +39,4 @@ proUntil DateTime?
 createdAt DateTime @default(now())
 updatedAt DateTime @updatedAt
 }
+
