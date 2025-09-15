@@ -7,7 +7,7 @@
 "build": "next build",
 "start": "next start",
 "postinstall": "prisma generate --schema=prisma/schema.prisma",
-"vercel-build": "prisma db push --schema=prisma/schema.prisma && next build",
+"vercel-build": "prisma db push --accept-data-loss --schema=prisma/schema.prisma && next build"
 "db:push": "prisma db push --schema=prisma/schema.prisma",
 "db:seed": "tsx prisma/seed.ts"
 },
@@ -33,4 +33,5 @@
 "typescript": "5.6.2"
 }
 }
+
 
