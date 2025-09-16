@@ -26,7 +26,7 @@ function Report({ items }: { items: any[] }) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        <Text style={styles.h1}>SII-APP-UK — Research Report</Text>
+        <Text style={styles.h1}>SII‑APP‑UK — Research Report</Text>
         {items.map((it, i) => (
           <View key={i} style={styles.item}>
             <Text style={styles.title}>{it.title}</Text>
