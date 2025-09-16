@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '../../../../src/lib/db';
+import { prisma } from '@/src/lib/db';
 import {
   Document,
   Page,
