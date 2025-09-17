@@ -1,64 +1,69 @@
-import { NextResponse } from 'next/server';
-import { prisma } from '../../../../src/lib/db';
+import { NextResponse } from 'next/server'
+import { prisma } from '@/src/lib/db'
 
-// Update with your own fetch functions or replace these with empty arrays.
-async function fetchHN() {
-  const res = await fetch('https://hn.algolia.com/api/v1/search?tags=front_page');
-  const data = await res.json();
-  return (data.hits || []).map((h: any) => ({
-    title: h.title,
-    url: h.url,
-    source: 'hn' as const,
-    hnPoints: h.points ?? undefined,
-    desc: h.story_text || h._highlightResult?.title?.value || '',
-  }));
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
+type IdeaInput = {
+  title: string
+  summary?: string
+  tags?: string[]
+  url?: string
 }
 
-async function fetchGitHubTrending() {
-  // This is a placeholder. Implement your scraping or API call here.
-  return [];
-}
+export async function POST(req: Request) {
+  try {
+    const { query = 'automation', region, budget, audience } = await req.json().catch(() => ({}))
 
-async function fetchReddit() {
-  // This is a placeholder. Implement your Reddit API call here if you have credentials.
-  return [];
-}
+    // Try dynamic import of a generator if present; otherwise use empty list.
+    let ideas: IdeaInput[] = []
+    try {
+      // If you have src/lib/ideafinder.ts exporting findIdeas, we’ll use it.
+      const mod = await import('@/src/lib/ideafinder')
+      if (typeof (mod as any).findIdeas === 'function') {
+        ideas = await (mod as any).findIdeas({ query, region, budget, audience })
+      }
+    } catch {
+      // no-op: generator not present – proceed with empty list
+    }
 
-// Optional: summarise and tag each idea using an AI service.
-async function enrich(title: string, desc: string) {
-  return { summary: '', tags: [] as string[] };
-}
+    // Normalize
+    const normalized: IdeaInput[] = (ideas || []).map((x: any) => ({
+      title: String(x?.title || '').trim(),
+      summary: x?.summary ? String(x.summary) : undefined,
+      tags: Array.isArray(x?.tags) ? x.tags.map(String).slice(0, 50) : undefined,
+      url: x?.url ? String(x.url) : undefined,
+    })).filter(i => i.title)
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || '';
+    // Persist idempotently
+    const created: string[] = []
+    const updated: string[] = []
+    const skipped: string[] = []
 
-export async function POST() {
-  // 1) gather data from all sources
-  const raw = [
-    ...(await fetchHN()),
-    ...(await fetchGitHubTrending()),
-    ...(await fetchReddit()),
-  ];
+    for (const it of normalized) {
+      try {
+        const res = await prisma.idea.upsert({
+          where: { title: it.title },
+          update: {
+            summary: it.summary ?? undefined,
+            tags: it.tags ?? undefined,
+            url: it.url ?? undefined,
+          },
+          create: {
+            title: it.title,
+            summary: it.summary ?? '',
+            tags: it.tags ?? [],
+            url: it.url ?? null,
+          },
+        })
+        updated.push(res.title)
+      } catch {
+        skipped.push(it.title)
+      }
+    }
 
-  // 2) deduplicate by case-insensitive title
-  const map = new Map<string, any>();
-  for (const it of raw) {
-    const key = it.title.trim().toLowerCase();
-    if (!map.has(key)) map.set(key, it);
+    return NextResponse.json({ ok: true, created, updated, skipped, count: normalized.length })
+  } catch (err) {
+    return NextResponse.json({ ok: false, error: (err as Error).message }, { status: 500 })
   }
-
-  // 3) enrich with summaries and tags
-  const enriched = [];
-  for (const it of map.values()) {
-    const { summary, tags } = await enrich(it.title, it.desc);
-    enriched.push({ ...it, summary, tags });
-  }
-
-  // 4) persist via the /api/research endpoint (batch upsert)
-  await fetch(`${APP_URL}/api/research`, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify(enriched),
-  });
-
-  return NextResponse.json({ ok: true, count: enriched.length });
 }
