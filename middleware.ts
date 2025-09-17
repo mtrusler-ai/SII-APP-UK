@@ -1,23 +1,32 @@
-import { clerkMiddleware } from '@clerk/nextjs/server'
+// middleware.ts — Clerk v5 style
 
-export default clerkMiddleware({
-  publicRoutes: [
-    '/',
-    '/sign-in(.*)',
-    '/sign-up(.*)',
-    '/ideas',
-    '/api/health',
-    '/api/ideas(.*)',
-    '/api/ideas/stats',
-    '/api/research/run',
-    '/api/stripe/(.*)',
-    '/api/research',
-    '/api/report/pdf',
-    '/admin',
-    '/checkout/(.*)',
-  ],
+import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
+
+// List routes that should NOT require auth.
+// Add or remove items to suit your app.
+const isPublicRoute = createRouteMatcher([
+  '/',               // home
+  '/sign-in(.*)',    // Clerk sign-in
+  '/sign-up(.*)',    // Clerk sign-up
+  // '/ideas(.*)',    // <- uncomment if Ideas page should be public
+  // '/api/ideas(.*)' // <- uncomment if ideas API should be public
+])
+
+export default clerkMiddleware((auth, req) => {
+  if (isPublicRoute(req)) {
+    // Public: allow through
+    return
+  }
+  // Private: require a signed-in user
+  auth().protect()
 })
 
+// Tell Next which paths should be checked by the middleware.
+// This matcher skips static files and _next assets.
 export const config = {
-  matcher: ['/((?!.*\\..*|_next).*)', '/', '/(api)(.*)'],
+  matcher: [
+    '/((?!.+\\.[\\w]+$|_next).*)',
+    '/',
+    '/(api|trpc)(.*)'
+  ]
 }
