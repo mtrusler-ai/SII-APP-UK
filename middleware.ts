@@ -1,23 +1,25 @@
-import { clerkMiddleware } from '@clerk/nextjs/server'
+// middleware.ts — Clerk v5 compatible (root of repo)
 
-export default clerkMiddleware({
-  publicRoutes: [
-    '/',
-    '/sign-in(.*)',
-    '/sign-up(.*)',
-    '/ideas',
-    '/api/health',
-    '/api/ideas(.*)',
-    '/api/ideas/stats',
-    '/api/research/run',
-    '/api/stripe/(.*)',
-    '/api/research',
-    '/api/report/pdf',
-    '/admin',
-    '/checkout/(.*)',
-  ],
-})
+import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
+
+// Public routes (no auth required):
+const isPublicRoute = createRouteMatcher([
+  '/',               // homepage
+  '/sign-in(.*)',    // Clerk sign-in
+  '/sign-up(.*)',    // Clerk sign-up
+  // '/ideas(.*)',    // <- uncomment if you want ideas public
+  // '/api/ideas(.*)' // <- uncomment if you want the API public
+]);
+
+export default clerkMiddleware((auth, req) => {
+  if (isPublicRoute(req)) return;   // allow public
+  auth().protect();                 // everything else requires auth
+});
 
 export const config = {
-  matcher: ['/((?!.*\\..*|_next).*)', '/', '/(api)(.*)'],
-}
+  matcher: [
+    '/((?!.+\\.[\\w]+$|_next).*)',
+    '/',
+    '/(api|trpc)(.*)',
+  ],
+};
