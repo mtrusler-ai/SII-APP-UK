@@ -1,15 +1,7 @@
-import path from 'path';
-import { fileURLToPath } from "url";
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+/** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: false,
-  webpack: (config) => {
-    // Resolve '@' to the project root, allowing imports like '@/src/lib/db'
-    config.resolve.alias['@'] = path.resolve(__dirname);
-    return config;
-  },
+  // If you had custom settings, we can re-add later—keep it simple for now.
 };
 
 export default nextConfig;
-
