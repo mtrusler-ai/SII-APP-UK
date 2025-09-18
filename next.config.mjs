@@ -1,3 +1,9 @@
+import path from 'path';
+import { fileURLToPath } from 'url';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+
 // next.config.mjs (ESM-safe, works on Vercel)
 
 // ESM safe __dirname
@@ -33,3 +39,4 @@ const nextConfig = {
 }
 
 export default nextConfig
+
