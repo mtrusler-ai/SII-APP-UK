@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { prisma } from '@/src/lib/db'
+import { prisma } from '@/lib/db'
 import React from 'react'
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer'
 import { renderToStream } from '@react-pdf/renderer'
