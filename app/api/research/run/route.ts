@@ -19,7 +19,7 @@ export async function POST(req: Request) {
     let ideas: IdeaInput[] = []
     try {
       // If you have src/lib/ideafinder.ts exporting findIdeas, we’ll use it.
-      const mod = await import('@/src/lib/ideafinder')
+      const mod = await import('@/lib/ideafinder')
       if (typeof (mod as any).findIdeas === 'function') {
         ideas = await (mod as any).findIdeas({ query, region, budget, audience })
       }
